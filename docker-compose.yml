@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  yemba-asr:
+    build: .
+    container_name: yemba-asr-server
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - HOST=0.0.0.0
+    volumes:
+      # Cache Hugging Face (pour éviter de re-télécharger le modèle)
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    restart: unless-stopped
+    # Limites de ressources (ajustez selon votre serveur)
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
