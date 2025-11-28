@@ -54,7 +54,9 @@ def load_model():
         raise
 
 @app.route('/health', methods=['GET'])
+@app.route('/health/', methods=['GET'])
 @app.route('/yemba-asr/health', methods=['GET'])
+@app.route('/yemba-asr/health/', methods=['GET'])
 def health_check():
     """Vérifier que le serveur fonctionne"""
     return jsonify({
@@ -63,7 +65,9 @@ def health_check():
     }), 200
 
 @app.route('/transcribe', methods=['POST'])
+@app.route('/transcribe/', methods=['POST'])
 @app.route('/yemba-asr/transcribe', methods=['POST'])
+@app.route('/yemba-asr/transcribe/', methods=['POST'])
 def transcribe():
     """
     Transcrire un fichier audio en texte Yemba
