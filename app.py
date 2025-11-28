@@ -16,22 +16,6 @@ import librosa
 app = Flask(__name__)
 CORS(app)  # Permettre les requêtes depuis n'importe quelle origine
 
-# Gérer les requêtes avec ou sans préfixe /yemba-asr/
-# Cela permet de fonctionner avec Nginx Proxy Manager qui ajoute le path
-class PrefixMiddleware:
-    def __init__(self, app, prefix=''):
-        self.app = app
-        self.prefix = prefix
-    
-    def __call__(self, environ, start_response):
-        if environ['PATH_INFO'].startswith(self.prefix):
-            environ['PATH_INFO'] = environ['PATH_INFO'][len(self.prefix):]
-            environ['SCRIPT_NAME'] = self.prefix
-        return self.app(environ, start_response)
-
-# Appliquer le middleware pour gérer /yemba-asr/
-app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/yemba-asr')
-
 # Variables globales pour le modèle (chargé une seule fois)
 processor = None
 model = None
@@ -70,6 +54,7 @@ def load_model():
         raise
 
 @app.route('/health', methods=['GET'])
+@app.route('/yemba-asr/health', methods=['GET'])
 def health_check():
     """Vérifier que le serveur fonctionne"""
     return jsonify({
@@ -78,6 +63,7 @@ def health_check():
     }), 200
 
 @app.route('/transcribe', methods=['POST'])
+@app.route('/yemba-asr/transcribe', methods=['POST'])
 def transcribe():
     """
     Transcrire un fichier audio en texte Yemba
