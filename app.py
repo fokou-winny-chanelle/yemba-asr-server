@@ -4,6 +4,7 @@ Utilise le modèle Hugging Face RobinsonNgeukeu237/working
 """
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from werkzeug.serving import WSGIRequestHandler
 import os
 import tempfile
 import traceback
@@ -14,6 +15,22 @@ import librosa
 
 app = Flask(__name__)
 CORS(app)  # Permettre les requêtes depuis n'importe quelle origine
+
+# Gérer les requêtes avec ou sans préfixe /yemba-asr/
+# Cela permet de fonctionner avec Nginx Proxy Manager qui ajoute le path
+class PrefixMiddleware:
+    def __init__(self, app, prefix=''):
+        self.app = app
+        self.prefix = prefix
+    
+    def __call__(self, environ, start_response):
+        if environ['PATH_INFO'].startswith(self.prefix):
+            environ['PATH_INFO'] = environ['PATH_INFO'][len(self.prefix):]
+            environ['SCRIPT_NAME'] = self.prefix
+        return self.app(environ, start_response)
+
+# Appliquer le middleware pour gérer /yemba-asr/
+app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/yemba-asr')
 
 # Variables globales pour le modèle (chargé une seule fois)
 processor = None
