@@ -4,7 +4,6 @@ Utilise le modèle Hugging Face RobinsonNgeukeu237/working
 """
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from werkzeug.serving import WSGIRequestHandler
 import os
 import tempfile
 import traceback
@@ -55,8 +54,6 @@ def load_model():
 
 @app.route('/health', methods=['GET'])
 @app.route('/health/', methods=['GET'])
-@app.route('/yemba-asr/health', methods=['GET'])
-@app.route('/yemba-asr/health/', methods=['GET'])
 def health_check():
     """Vérifier que le serveur fonctionne"""
     return jsonify({
@@ -64,11 +61,41 @@ def health_check():
         "model_loaded": model is not None
     }), 200
 
+@app.route('/yemba-asr/health', methods=['GET'])
+@app.route('/yemba-asr/health/', methods=['GET'])
+def health_check_prefixed():
+    """Vérifier que le serveur fonctionne (avec préfixe pour Nginx Proxy Manager)"""
+    return jsonify({
+        "status": "healthy",
+        "model_loaded": model is not None
+    }), 200
+
 @app.route('/transcribe', methods=['POST'])
 @app.route('/transcribe/', methods=['POST'])
+def transcribe():
+    """
+    Transcrire un fichier audio en texte Yemba
+    
+    Requête:
+        - Fichier audio dans 'audio' (multipart/form-data)
+        - Formats supportés: WAV, MP3, FLAC, etc.
+    
+    Réponse:
+        {
+            "success": true,
+            "transcription": "texte transcrit",
+            "error": null
+        }
+    """
+    return _transcribe_handler()
+
 @app.route('/yemba-asr/transcribe', methods=['POST'])
 @app.route('/yemba-asr/transcribe/', methods=['POST'])
-def transcribe():
+def transcribe_prefixed():
+    """Transcrire un fichier audio (avec préfixe pour Nginx Proxy Manager)"""
+    return _transcribe_handler()
+
+def _transcribe_handler():
     """
     Transcrire un fichier audio en texte Yemba
     
